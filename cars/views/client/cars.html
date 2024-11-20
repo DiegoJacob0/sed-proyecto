@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agregar un coche</title>
+  <style>
+ body {
+  font-family: 'Arial', sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #1a1a1a;
+  color: #fff;
+  background-image: url('https://images.unsplash.com/photo-1504495950151-9ff5f9779f75'); /* Fondo con un coche */
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+.container {
+  max-width: 700px;
+  margin: 50px auto;
+  padding: 20px;
+  background-color: rgba(0, 0, 0, 0.7); /* Fondo oscuro para el contenedor */
+  border-radius: 10px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+}
+
+h1 {
+  text-align: center;
+  font-size: 36px;
+  color: #f4d03f; /* Color dorado como detalles metálicos */
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+input[type="text"], input[type="number"] {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 5px;
+  border: 1px solid #555;
+  background-color: #444;
+  color: #fff;
+  font-size: 16px;
+}
+
+input[type="text"]:focus, input[type="number"]:focus {
+  border-color: #f4d03f;
+  outline: none;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  background-color: #f4d03f;
+  color: #333;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+button:hover {
+  background-color: #e1c03b;
+  transition: background-color 0.3s ease;
+}
+
+h2 {
+  font-size: 28px;
+  color: #f4d03f;
+  text-align: center;
+  margin-top: 40px;
+}
+
+.task-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.task {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background-color: #444;
+  margin: 8px 0;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.task-text {
+  font-size: 18px;
+  color: #f4d03f;
+}
+
+.task button {
+  background-color: #f44336;
+  border: none;
+  padding: 8px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.task button:hover {
+  background-color: #c0392b;
+}
+
+.task button.edit {
+  background-color: #ff9800;
+}
+
+.task button.edit:hover {
+  background-color: #e67e22;
+}
+
+footer {
+  text-align: center;
+  font-size: 16px;
+  margin-top: 40px;
+  color: #f4d03f;
+}
+
+footer a {
+  color: #f4d03f;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Agregar un Coche</h1>
+    <input type="text" id="brand" placeholder="Marca del coche">
+    <input type="text" id="model" placeholder="Modelo del coche">
+    <input type="number" id="year" placeholder="Año del coche">
+    <input type="number" id="price" placeholder="Precio del coche">
+    <button onclick="addCar()">Agregar</button>
+
+    <h2>Lista de Coches</h2>
+    <ul id="car-list" class="task-list">
+      <!-- Aquí se agregarán los coches -->
+    </ul>
+  </div>
+
+  <script>
+    // Obtener los coches de la base de datos al cargar la página
+    async function fetchCars() {
+      const response = await fetch('/cars');
+      const cars = await response.json();
+      
+      const carList = document.getElementById('car-list');
+      carList.innerHTML = '';  // Limpiar la lista actual
+
+      cars.forEach(car => {
+        const li = document.createElement('li');
+        li.classList.add('task');
+        li.innerHTML = `
+          <span class="task-text">${car.brand} ${car.model} (${car.year}) - $${car.price}</span>
+          <div>
+            <button onclick="deleteCar('${car._id}')">Eliminar</button>
+          </div>
+        `;
+        carList.appendChild(li);
+      });
+    }
+
+    // Función para agregar un coche
+    async function addCar() {
+      const brand = document.getElementById('brand').value;
+      const model = document.getElementById('model').value;
+      const year = document.getElementById('year').value;
+      const price = document.getElementById('price').value;
+
+      const carData = {
+        brand,
+        model,
+        year,
+        price
+      };
+
+      // Enviar los datos del coche al servidor para ser guardados
+      const response = await fetch('/cars/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(carData)
+      });
+
+      if (response.ok) {
+        alert('Coche agregado correctamente.');
+        fetchCars();  // Recargar la lista de coches
+      } else {
+        alert('Error al agregar el coche.');
+      }
+    }
+
+    // Función para eliminar un coche
+    async function deleteCar(id) {
+      const response = await fetch(`/cars/${id}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        alert('Coche eliminado correctamente.');
+        fetchCars();  // Recargar la lista de coches después de eliminar uno
+      } else {
+        alert('Error al eliminar el coche.');
+      }
+    }
+
+    // Cargar los coches al inicio
+    fetchCars();
+  </script>
+
+</body>
+</html>
